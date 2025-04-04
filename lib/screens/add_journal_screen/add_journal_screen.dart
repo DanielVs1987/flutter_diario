@@ -6,7 +6,7 @@ import '../../services/journal_service.dart';
 class AddJournalScreen extends StatelessWidget {
   final Journal journal;
   final bool isEditing;
-  AddJournalScreen({Key? key, required this.journal, required this.isEditing}) : super(key: key);
+  AddJournalScreen({super.key, required this.journal, required this.isEditing});
 
  final TextEditingController _contentController = TextEditingController();
 

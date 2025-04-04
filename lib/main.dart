@@ -1,17 +1,32 @@
+import 'package:diario/screens/login_screens/login_screens.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'models/journal.dart';
 import 'screens/add_journal_screen/add_journal_screen.dart';
 import 'screens/home_screen/home_screen.dart';
 
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final isLogged = await verifyLogged();
+  runApp( MyApp( isLogged: isLogged,));
+}
 
+Future<bool> verifyLogged() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
 
-void main() {
-  runApp(const MyApp());
+  String? token = prefs.getString("accessToken");
+
+  if (token == null) {
+    return false;
+  }
+  return true;
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  final bool isLogged;
+  const MyApp({super.key, required this.isLogged});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -30,20 +45,21 @@ class MyApp extends StatelessWidget {
         ),
         textTheme: GoogleFonts.bitterTextTheme(),
       ),
-      initialRoute: "home",
+      initialRoute: (isLogged) ? "home" : "login",
       routes: {
         "home": (context) => const HomeScreen(),
+        "login": (context) => LoginScreen(),
       },
       onGenerateRoute: (routeSettings) {
-
         if (routeSettings.name == "add-journal") {
-          Map<String, dynamic> map = routeSettings.arguments as Map<String, dynamic>;
+          Map<String, dynamic> map =
+              routeSettings.arguments as Map<String, dynamic>;
           final Journal journal = map["journal"] as Journal;
           final bool isEditing = map["is_editing"];
 
           return MaterialPageRoute(
             builder: (context) {
-              return AddJournalScreen(journal: journal, isEditing: isEditing,);
+              return AddJournalScreen(journal: journal, isEditing: isEditing);
             },
           );
         }

@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_interceptor/http/http.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/journal.dart';
 import 'http_interceptors.dart';
 
@@ -50,8 +52,11 @@ class JournalService {
     return false;
   }
 
-  Future<List<Journal>> getAll() async {
-    http.Response response = await client.get(getUri());
+  Future<List<Journal>> getAll({required String id, required String token}) async {
+    http.Response response = await client.get(Uri.parse("${url}users/$id/$resource"), headers: {
+      "Authorization": "Bearer $token"
+
+    });
 
     if (response.statusCode != 200) {
       //TODO: Criar uma exceção personalizada
@@ -67,4 +72,28 @@ class JournalService {
 
     return result;
   }
+
+  Future<bool> tokenExpired({required String id, required String token}) async {
+    http.Response response = await client.get(Uri.parse("${url}users/$id/$resource"), headers: {
+      "Authorization": "Bearer $token"
+    });
+
+    if(response.statusCode == 401){
+      return true;
+    }
+    return false;
+  }
+
+  Future<bool> delete(String id) async {
+    http.Response response = await http.delete(Uri.parse("${getURL()}$id"));
+
+    if (response.statusCode == 200) {
+      return true;
+    }
+    return false;
+  }
+
 }
+
+
+

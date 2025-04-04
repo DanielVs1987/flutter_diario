@@ -1,3 +1,5 @@
+import 'package:diario/screens/commom/confirmation_dialog.dart';
+import 'package:diario/services/journal_service.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../../../helpers/weekday.dart';
@@ -9,11 +11,11 @@ class JournalCard extends StatelessWidget {
   final DateTime showedDate;
   final Function refreshFunction;
   const JournalCard({
-    Key? key,
+    super.key,
     this.journal,
     required this.showedDate,
     required this.refreshFunction,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -78,6 +80,13 @@ class JournalCard extends StatelessWidget {
                   ),
                 ),
               ),
+
+              IconButton(
+                onPressed: () {
+                  removeJournal(context);
+                },
+                icon: Icon(Icons.delete),
+              ),
             ],
           ),
         ),
@@ -118,9 +127,7 @@ class JournalCard extends StatelessWidget {
 
     map['journal'] = innerJournal;
 
-    Navigator.pushNamed(context, 'add-journal', arguments: map).then((
-      value,
-    ) {
+    Navigator.pushNamed(context, 'add-journal', arguments: map).then((value) {
       refreshFunction();
 
       if (value == DisposeStatus.success) {
@@ -133,5 +140,29 @@ class JournalCard extends StatelessWidget {
         );
       }
     });
+  }
+
+  removeJournal(BuildContext context) {
+    JournalService service = JournalService();
+
+    if (journal != null) {
+      showConfirmationDialog(
+        context,
+        content:
+            "Deseja realmente remover o diario do dia ${WeekDay(journal!.createdAt)}?",
+        affirmativeOption: "Remover",
+      ).then((value) {
+        if (value) {
+          return service.delete(journal!.id).then((value) {
+            if (value) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("Mensagem salva com sucesso!")),
+              );
+              refreshFunction();
+            }
+          });
+        }
+      });
+    }
   }
 }

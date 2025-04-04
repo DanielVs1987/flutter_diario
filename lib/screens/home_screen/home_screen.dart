@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/journal.dart';
 import '../../services/journal_service.dart';
 import 'widgets/home_screen_list.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -42,9 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () {
               refresh();
             },
-            icon: const Icon(
-              Icons.refresh,
-            ),
+            icon: const Icon(Icons.refresh),
           ),
         ],
       ),
@@ -60,18 +59,45 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void refresh() async {
-    List<Journal> listJournal = await _journalService.getAll();
+  void refresh() {
+    SharedPreferences.getInstance().then((prefs) {
+      String? token = prefs.getString("accessToken");
+      String? email = prefs.getString("email");
+      int? id = prefs.getInt("id");
 
-    setState(() {
-      database = {};
-      for (Journal journal in listJournal) {
-        database[journal.id] = journal;
+      if (token != null && email != null && id != null) {
+        _journalService.tokenExpired(id: id.toString(), token: token).then((
+          value,
+        ) {
+          if (value) {
+            prefs.clear();
+            Navigator.pushReplacementNamed(context, "login");
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text("Sessão expirada!")));
+          }
+        });
       }
 
-      if (_listScrollController.hasClients) {
-        final double position = _listScrollController.position.maxScrollExtent;
-        _listScrollController.jumpTo(position);
+      if (token != null && email != null && id != null) {
+        _journalService.getAll(id: id.toString(), token: token).then((
+          List<Journal> listJournal,
+        ) {
+          setState(() {
+            database = {};
+            for (Journal journal in listJournal) {
+              database[journal.id] = journal;
+            }
+
+            if (_listScrollController.hasClients) {
+              final double position =
+                  _listScrollController.position.maxScrollExtent;
+              _listScrollController.jumpTo(position);
+            }
+          });
+        });
+      } else {
+        Navigator.pushReplacementNamed(context, "login");
       }
     });
   }
