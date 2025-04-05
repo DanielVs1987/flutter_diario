@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:diario/helpers/logout.dart';
+import 'package:diario/screens/commom/exception_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/journal.dart';
@@ -24,6 +28,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final ScrollController _listScrollController = ScrollController();
   final JournalService _journalService = JournalService();
 
+  int? userId;
+
   @override
   void initState() {
     refresh();
@@ -47,58 +53,75 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: ListView(
-        controller: _listScrollController,
-        children: generateListJournalCards(
-          windowPage: windowPage,
-          currentDay: currentDay,
-          database: database,
-          refreshFunction: refresh,
+      drawer: Drawer(
+        child: ListView(
+          children: [
+            ListTile(
+              onTap: () {
+                logout(context);
+              },
+              title: Text("Sair"),
+              leading: Icon(Icons.logout),
+            ),
+          ],
         ),
       ),
+      body:
+          userId != null
+              ? ListView(
+                controller: _listScrollController,
+                children: generateListJournalCards(
+                  windowPage: windowPage,
+                  currentDay: currentDay,
+                  database: database,
+                  refreshFunction: refresh,
+                  userId: userId!,
+                ),
+              )
+              : Center(child: CircularProgressIndicator()),
     );
   }
 
   void refresh() {
-    SharedPreferences.getInstance().then((prefs) {
-      String? token = prefs.getString("accessToken");
-      String? email = prefs.getString("email");
-      int? id = prefs.getInt("id");
+    SharedPreferences.getInstance()
+        .then((prefs) {
+          String? token = prefs.getString("accessToken");
+          String? email = prefs.getString("email");
+          int? id = prefs.getInt("id");
 
-      if (token != null && email != null && id != null) {
-        _journalService.tokenExpired(id: id.toString(), token: token).then((
-          value,
-        ) {
-          if (value) {
-            prefs.clear();
+          if (token != null && email != null && id != null) {
+            setState(() {
+              userId = id;
+            });
+
+            _journalService.getAll(id: id.toString(), token: token).then((
+              List<Journal> listJournal,
+            ) {
+              setState(() {
+                database = {};
+                for (Journal journal in listJournal) {
+                  database[journal.id] = journal;
+                }
+
+                if (_listScrollController.hasClients) {
+                  final double position =
+                      _listScrollController.position.maxScrollExtent;
+                  _listScrollController.jumpTo(position);
+                }
+              });
+            });
+          } else {
             Navigator.pushReplacementNamed(context, "login");
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text("Sessão expirada!")));
           }
-        });
-      }
-
-      if (token != null && email != null && id != null) {
-        _journalService.getAll(id: id.toString(), token: token).then((
-          List<Journal> listJournal,
-        ) {
-          setState(() {
-            database = {};
-            for (Journal journal in listJournal) {
-              database[journal.id] = journal;
-            }
-
-            if (_listScrollController.hasClients) {
-              final double position =
-                  _listScrollController.position.maxScrollExtent;
-              _listScrollController.jumpTo(position);
-            }
-          });
-        });
-      } else {
-        Navigator.pushReplacementNamed(context, "login");
-      }
-    });
+        })
+        .catchError((error) {
+          logout(context);
+        }, test: (error) => error is TokenNotValidException)
+        .catchError((error) {
+          var inerErro = error as HttpException;
+          showExceptionDialog(context, content: inerErro.message);
+        }, test: (error) => error is HttpException);
   }
+
+  
 }

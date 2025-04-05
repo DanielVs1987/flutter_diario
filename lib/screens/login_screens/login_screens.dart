@@ -1,12 +1,15 @@
+import 'dart:io';
+
 import 'package:diario/screens/commom/confirmation_dialog.dart';
+import 'package:diario/screens/commom/exception_dialog.dart';
 import 'package:diario/services/auth_service.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatelessWidget {
-  LoginScreen({Key? key}) : super(key: key);
+  LoginScreen({super.key});
 
-  TextEditingController _emailController = TextEditingController();
-  TextEditingController _passController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passController = TextEditingController();
   AuthService service = AuthService();
 
   @override
@@ -66,31 +69,38 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  login(BuildContext context) async {
+  login(BuildContext context) {
     String email = _emailController.text;
     String password = _passController.text;
 
-    try {
-      service.login(email: email, password: password).then((resultLogin){
-        if(resultLogin){
-          Navigator.pushReplacementNamed(context, "home");
-        }
-      });
-    } on UserNotFindException {
-      showConfirmationDialog(
-        context,
-        content:
-            "Deseja criar um novo usuario usando o email $email e a senha inserida?",
-        affirmativeOption: "CRIAR",
-      ).then((value) {
-        if(value != null && value){
-          service.register(email: email, password: password).then((resultRegister){
-            if(resultRegister){
-              Navigator.popAndPushNamed(context, "home");
+    service
+        .login(email: email, password: password)
+        .then((resultLogin) {
+          if (resultLogin) {
+            Navigator.pushReplacementNamed(context, "home");
+          }
+        })
+        .catchError((error) {
+          var inerErro = error as HttpException;
+          showExceptionDialog(context, content: inerErro.message);
+        }, test: (error) => error is HttpException)
+        .catchError((error) {
+          showConfirmationDialog(
+            context,
+            content:
+                "Deseja criar um novo usuario usando o email $email e a senha inserida?",
+            affirmativeOption: "CRIAR",
+          ).then((value) {
+            if (value != null && value) {
+              service.register(email: email, password: password).then((
+                resultRegister,
+              ) {
+                if (resultRegister) {
+                  Navigator.popAndPushNamed(context, "home");
+                }
+              });
             }
           });
-        }
-      });
-    }
+        }, test: (error) => error is UserNotFindException);
   }
 }

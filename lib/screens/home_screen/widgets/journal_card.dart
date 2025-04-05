@@ -1,6 +1,11 @@
+import 'dart:io';
+
+import 'package:diario/helpers/logout.dart';
 import 'package:diario/screens/commom/confirmation_dialog.dart';
+import 'package:diario/screens/commom/exception_dialog.dart';
 import 'package:diario/services/journal_service.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import '../../../helpers/weekday.dart';
 import '../../../models/journal.dart';
@@ -10,11 +15,13 @@ class JournalCard extends StatelessWidget {
   final Journal? journal;
   final DateTime showedDate;
   final Function refreshFunction;
+  final int userId;
   const JournalCard({
     super.key,
     this.journal,
     required this.showedDate,
     required this.refreshFunction,
+    required this.userId,
   });
 
   @override
@@ -115,6 +122,7 @@ class JournalCard extends StatelessWidget {
       content: "",
       createdAt: showedDate,
       updatedAt: showedDate,
+      userId: userId,
     );
 
     Map<String, dynamic> map = {};
@@ -143,26 +151,38 @@ class JournalCard extends StatelessWidget {
   }
 
   removeJournal(BuildContext context) {
-    JournalService service = JournalService();
+    SharedPreferences.getInstance().then((prefs) {
+      String? token = prefs.getString("accessToken");
 
-    if (journal != null) {
-      showConfirmationDialog(
-        context,
-        content:
-            "Deseja realmente remover o diario do dia ${WeekDay(journal!.createdAt)}?",
-        affirmativeOption: "Remover",
-      ).then((value) {
-        if (value) {
-          return service.delete(journal!.id).then((value) {
+      if (token != null) {
+        JournalService service = JournalService();
+
+        if (journal != null) {
+          showConfirmationDialog(
+            context,
+            content:
+                "Deseja realmente remover o diario do dia ${WeekDay(journal!.createdAt)}?",
+            affirmativeOption: "Remover",
+          ).then((value) {
             if (value) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("Mensagem salva com sucesso!")),
-              );
-              refreshFunction();
+              return service.delete(journal!.id, token).then((value) {
+                if (value) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Mensagem salva com sucesso!")),
+                  );
+                  refreshFunction();
+                }
+              });
             }
-          });
+          }).catchError((error) {
+          logout(context);
+        }, test: (error) => error is TokenNotValidException)
+        .catchError((error) {
+          var inerErro = error as HttpException;
+          showExceptionDialog(context, content: inerErro.message);
+        }, test: (error) => error is HttpException);
         }
-      });
-    }
+      }
+    });
   }
 }

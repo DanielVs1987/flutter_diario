@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_interceptor/http/http.dart';
@@ -22,45 +23,65 @@ class JournalService {
     return Uri.parse(getURL());
   }
 
-  Future<bool> register(Journal journal) async {
+  Future<bool> register(Journal journal, String token) async {
     String journalJSON = json.encode(journal.toMap());
 
     http.Response response = await client.post(
       getUri(),
-      headers: {'Content-type': 'application/json'},
+      headers: {
+        'Content-type': 'application/json',
+        "Authorization": "Bearer $token",
+      },
       body: journalJSON,
     );
 
-    if (response.statusCode == 201) {
-      return true;
+    if (response.statusCode != 201) {
+      if (json.decode(response.body) == "jwt expired") {
+        throw TokenNotValidException();
+      }
+
+      throw HttpException(response.body);
     }
 
-    return false;
+    return true;
   }
 
-  Future<bool> edit(Journal journal, String id) async {
+  Future<bool> edit(Journal journal, String id, String token) async {
     String journalJSON = json.encode(journal.toMap());
 
     http.Response response = await client.put(
       Uri.parse("${getURL()}$id"),
-      headers: {'Content-type': 'application/json'},
+      headers: {
+        'Content-type': 'application/json',
+        "Authorization": "Bearer $token",
+      },
       body: journalJSON,
     );
-    if (response.statusCode == 200) {
-      return true;
-    }
-    return false;
-  }
-
-  Future<List<Journal>> getAll({required String id, required String token}) async {
-    http.Response response = await client.get(Uri.parse("${url}users/$id/$resource"), headers: {
-      "Authorization": "Bearer $token"
-
-    });
 
     if (response.statusCode != 200) {
-      //TODO: Criar uma exceção personalizada
-      throw Exception();
+      if (json.decode(response.body) == "jwt expired") {
+        throw TokenNotValidException();
+      }
+      throw HttpException(response.body);
+    }
+
+    return true;
+  }
+
+  Future<List<Journal>> getAll({
+    required String id,
+    required String token,
+  }) async {
+    http.Response response = await client.get(
+      Uri.parse("${url}users/$id/$resource"),
+      headers: {"Authorization": "Bearer $token"},
+    );
+
+    if (response.statusCode != 200) {
+      if (json.decode(response.body) == "jwt expired") {
+        throw TokenNotValidException();
+      }
+      throw HttpException(response.body);
     }
 
     List<Journal> result = [];
@@ -73,27 +94,22 @@ class JournalService {
     return result;
   }
 
-  Future<bool> tokenExpired({required String id, required String token}) async {
-    http.Response response = await client.get(Uri.parse("${url}users/$id/$resource"), headers: {
-      "Authorization": "Bearer $token"
-    });
+  Future<bool> delete(String id, String token) async {
+    http.Response response = await http.delete(
+      Uri.parse("${getURL()}$id"),
+      headers: {"Authorization": "Bearer $token"},
+    );
 
-    if(response.statusCode == 401){
-      return true;
+    if (response.statusCode != 200) {
+      if (json.decode(response.body) == "jwt expired") {
+        throw TokenNotValidException();
+      }
+
+      throw HttpException(response.body);
     }
-    return false;
+
+    return true;
   }
-
-  Future<bool> delete(String id) async {
-    http.Response response = await http.delete(Uri.parse("${getURL()}$id"));
-
-    if (response.statusCode == 200) {
-      return true;
-    }
-    return false;
-  }
-
 }
 
-
-
+class TokenNotValidException implements Exception {}

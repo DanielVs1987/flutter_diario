@@ -30,6 +30,11 @@
       "email": "daniel@gmail.com",
       "password": "$2a$10$KkmDdX6eWCYjKVZvGLu.i.ACEhh5on6Jt1jxUdCUDPdurSdkFgxc2",
       "id": 6
+    },
+    {
+      "email": "danielvalverde@gmail.com",
+      "password": "$2a$10$H8Lea3PQxzsfgL.a4tXgE./q6i2BMZxPumZHfPuWOX4KWuZspmJB6",
+      "id": 7
     }
   ],
   "journals": [
@@ -46,6 +51,27 @@
       "created_at": "2025-03-22 20:15:11.127928",
       "updated_at": "2025-03-22 20:15:11.127928",
       "userId": 5
+    },
+    {
+      "id": "eef60d50-11b9-11f0-83c7-7ff73a4ef6e1",
+      "content": "sdfsdfsdfsdfsd",
+      "created_at": "2025-04-03 00:34:36.370092",
+      "updated_at": "2025-04-03 00:34:36.370092",
+      "userId": 6
+    },
+    {
+      "id": "83f81620-1221-11f0-9a17-bbde02f9886d",
+      "content": "Anieversario da veia\n",
+      "created_at": "2025-04-05 13:25:11.431295",
+      "updated_at": "2025-04-05 13:25:11.431295",
+      "userId": 7
+    },
+    {
+      "id": "c01fb2a0-1228-11f0-9a17-bbde02f9886d",
+      "content": "\\zdasdsafsdfsd",
+      "created_at": "2025-04-02 13:25:11.431295",
+      "updated_at": "2025-04-02 13:25:11.431295",
+      "userId": 7
     }
   ]
 }
