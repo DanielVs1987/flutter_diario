@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:diario/services/webclient.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_interceptor/http/http.dart';
@@ -8,12 +9,9 @@ import '../models/journal.dart';
 import 'http_interceptors.dart';
 
 class JournalService {
-  static const String url = "http://192.168.0.8:3000/";
   static const String resource = "journals/";
-
-  http.Client client = InterceptedClient.build(
-    interceptors: [LoggingInterceptor()],
-  );
+  http.Client client = WebClient().client;
+  String url = WebClient.url;
 
   String getURL() {
     return "$url$resource";

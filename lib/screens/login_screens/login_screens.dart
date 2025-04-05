@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:diario/screens/commom/confirmation_dialog.dart';
@@ -101,6 +102,8 @@ class LoginScreen extends StatelessWidget {
               });
             }
           });
-        }, test: (error) => error is UserNotFindException);
+        }, test: (error) => error is UserNotFindException).catchError((error){
+          showExceptionDialog(context, content: "O servidor demorou para responder tente mais tarde");
+        }, test: (error) => error is TimeoutException, );
   }
 }

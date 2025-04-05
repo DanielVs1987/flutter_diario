@@ -1,18 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:diario/services/webclient.dart';
 import 'package:http_interceptor/http/intercepted_client.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'http_interceptors.dart';
 
 class AuthService {
-  //TODO: modularizar url
-  static const String url = "http://192.168.0.8:3000/";
-
-  http.Client client = InterceptedClient.build(
-    interceptors: [LoggingInterceptor()],
-  );
+http.Client client = WebClient().client;
+String url = WebClient.url;
 
   Future<bool> login({required String email, required String password}) async {
     http.Response response = await client.post(
