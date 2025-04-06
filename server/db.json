@@ -53,13 +53,6 @@
       "userId": 5
     },
     {
-      "id": "eef60d50-11b9-11f0-83c7-7ff73a4ef6e1",
-      "content": "sdfsdfsdfsdfsd",
-      "created_at": "2025-04-03 00:34:36.370092",
-      "updated_at": "2025-04-03 00:34:36.370092",
-      "userId": 6
-    },
-    {
       "id": "83f81620-1221-11f0-9a17-bbde02f9886d",
       "content": "Anieversario da veia\n",
       "created_at": "2025-04-05 13:25:11.431295",
@@ -72,6 +65,20 @@
       "created_at": "2025-04-02 13:25:11.431295",
       "updated_at": "2025-04-02 13:25:11.431295",
       "userId": 7
+    },
+    {
+      "id": "2506a0a0-128f-11f0-9c2c-b1f903e36df8",
+      "content": "ola finalize esse curso",
+      "created_at": "2025-04-03 02:27:51.942536",
+      "updated_at": "2025-04-03 02:27:51.942536",
+      "userId": 6
+    },
+    {
+      "id": "02f744d0-1292-11f0-a836-1175da85eae2",
+      "content": "novo teste\n",
+      "created_at": "2025-04-05 02:50:17.487760",
+      "updated_at": "2025-04-05 02:50:17.487760",
+      "userId": 6
     }
   ]
 }

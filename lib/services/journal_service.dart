@@ -1,12 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:diario/services/webclient.dart';
-import 'package:flutter/cupertino.dart';
+
 import 'package:http/http.dart' as http;
-import 'package:http_interceptor/http/http.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 import '../models/journal.dart';
-import 'http_interceptors.dart';
 
 class JournalService {
   static const String resource = "journals/";
@@ -45,6 +43,7 @@ class JournalService {
   }
 
   Future<bool> edit(Journal journal, String id, String token) async {
+    journal.updatedAt = DateTime.now();
     String journalJSON = json.encode(journal.toMap());
 
     http.Response response = await client.put(

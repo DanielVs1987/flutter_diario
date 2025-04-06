@@ -2,10 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:diario/services/webclient.dart';
-import 'package:http_interceptor/http/intercepted_client.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'http_interceptors.dart';
+
 
 class AuthService {
 http.Client client = WebClient().client;

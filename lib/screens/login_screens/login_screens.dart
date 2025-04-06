@@ -6,11 +6,18 @@ import 'package:diario/screens/commom/exception_dialog.dart';
 import 'package:diario/services/auth_service.dart';
 import 'package:flutter/material.dart';
 
-class LoginScreen extends StatelessWidget {
-  LoginScreen({super.key});
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
+
   final TextEditingController _passController = TextEditingController();
+
   AuthService service = AuthService();
 
   @override
